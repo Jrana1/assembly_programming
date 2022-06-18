@@ -1,38 +1,33 @@
 	.data
 	     str1:.asciiz "Lager"   
-	     str2:.asciiz "madam"
+	     str2:.asciiz "Regal"
 	     str3:.space 10
 	          .byte 0xff
 	          .byte 0xff
 	.text
-	   lui $a0,0x1001  # saving the start address of str1 in a0
+	   la $a0,str1  # saving the start address of str1 in a0
 	   jal toLower     #calling toLower function  toLower(str1)
 	   
-	   addiu $a0,$a0,6  # # saving the start address of str2 in a0
+	   la $a0,str2 # # saving the start address of str2 in a0
 	   jal toLower   # calling  to toLower function with str2
 	   
 	   
-	   lui $a0,0x1001  # saving the start address of str1 in a0
+	   la $a0,str1 # saving the start address of str1 in a0
 	   jal strturnaround     #calling strturnaround function  toLower(str1)
 	   
-	   addiu $a0,$a0,6  # # saving the start address of str2 in a0
+	    
+	   la $a0,str2 # # saving the start address of str2 in a0
 	   jal strturnaround   # calling  to strturnaround function with str2
 	   
-	    lui $a0,0x1001  # address of str1 in a0
-	    addiu $a1,$a0,6 #address of str2in a1
-	    addiu $a2,$a1,6 #address of str2in a2
+	  
+	    la $a0,str1  #address of str2in a1
+	    la $a1,str2  #address of str2in a2
+	    la $a2,str3
 	    jal strcat    # calling strcat function
-	   
-	   
-	   lui $a0,0x1001  # saving the start address of str1 in a0
-	   jal strisPalindrome     #calling strturnaround function  toLower(str1)
-	   
-	   addiu $7,$v0,0   # saving the return value in r7
-	   
-	   addiu $a0,$a0,6  # # saving the start address of str2 in a0
-	   jal strisPalindrome   # calling  to strturnaround function with str2
-	   
-	   addiu $8,$v0,0   # saving the return value in r8
+	    
+	    la $a0,str3     
+	    jal strisPalindrome  # call isPalindrome
+	    move $8,$v0          # save the return value of isPalindrome fun
 	   
 	   
 	   
@@ -41,57 +36,36 @@
 	   
 	   
 end_of_programm:
-           beq $0,$0,end_of_programm       #end of the programm
+           beq $0,$0,end_of_programm       #end of the  main programm
            
            
-           
-           
-           
-           
-           
-           
-           
-           
+            
 # implementation of strcat function
 	    
    
-strcat: 
-      lui $20,0x0040
-      ori $20,$ra,0
-      addiu $8,$a0,0 # address of str1 in r8
-      addiu $9,$a1,0  # address of str1 in r9
-      addiu $10,$a2,0  # address of str1 in r10
-      addiu $11,$zero,5 # set r11 to  len of str1
-      addiu $12,$zero,0 # set r12 to  0. this will count the num of iteration
-      
-      loop5:
-            slt $13,$12,$11   # set r13=1 if r12(count) less then 5
-            lbu $14,0($9)
-            beq $14,$0, return_back #  return when reached to end of str2
-            beq $11,$12,skip_for_null_at_str1
-            bne $13,$0,store_from_str1  # store from str1 to str3 if count less than strlen(str1)
-            beq $13,$0,store_from_str2  # store from str2 to str3 if count greater than strlen(str1)
-            j loop5
-            
-            store_from_str1:
-                           lbu $14,0($8)  # load character from str1 in r14
-                           addiu $8,$8,1  # r8++
-                           sb $14,0($10)  # store that character in str3
-                           addiu $10,$10,1 #r10++
-                           addiu $12,$12,1  # count++<=>r12++
-                           j loop5
-            store_from_str2:
-                           lbu $14,0($9)  # load character from str1 in r14
-                           addiu $9,$9,1  # r9++
-                           sb $14,0($10)  # store that character in str3
-                           addiu $10,$10,1 #r10++
-                           addiu $12,$12,1  # count++<=>r12++
-                           j loop5    # continue loop
-            skip_for_null_at_str1:
-                       addiu $12,$12,1  # r12++<=>count++
-                       j loop5       # continue loop
-            return_back:
-                         jr $20    # return to caller
+strcat:
+           move $7,$a0  # address of str1 in r7
+           move $8,$a1    # address of str2 in r8
+           move $9,$a2      # address of str3 in r9
+           
+           label1:
+                 lbu $10,0($7)   # load element from str1
+                 beq $10,$0,label2  # load element from str1 untill r10=0
+                 sb $10,0($9)       # store element in str3
+                 addiu $7,$7,1      # increament r7
+                 addiu $9,$9,1      # increament r9
+                 j label1    # continue loop
+          label2:
+                 lbu $10,0($8)   # load element from str1
+                 beq $10,$0,return4  # load element from str1 untill r10=0
+                 sb $10,0($9)       # store element in str3
+                 addiu $8,$8,1
+                 addiu $9,$9,1     
+                 j label2 
+           return4:
+                  li $10,'\0'  # null termination
+                  sb $10,0($9)
+                  jr $ra
 	    	     
 	     
 	    	     	     
@@ -134,9 +108,9 @@ toLower:
              #implementation of strturnaround function
 
 strturnaround:       
-        lui $20,0x0040   # saving the address of caller in r20
-        ori $20,$ra,0
         
+        addiu $sp,$sp,-4
+        sw $ra, 0($sp)
         jal str_len   # calling str_len to get len of str
 	addiu $17,$v0,0  # r17=len
         addiu $8,$a0,0  # get start address of str
@@ -161,20 +135,25 @@ strturnaround:
             addiu $10,$10,-1      # r10--
             j loop1
             return1:
-               jr $20     # return to caller
+               lw $ra,0($sp)
+               addiu $sp,$sp,4
+               jr $ra     # return to caller
 
 
 
 
  # implementationo of isPalindrome function
 strisPalindrome:
-         lui $20,0x0040   # saving the address of caller in r20
-         ori $20,$ra,0
          
+         addiu $sp,$sp,-4  # allocating memory in stack
+         sw $ra,0($sp)      # storing the address of caller in stack
          jal str_len    # calling str_len func
          
          addiu $21,$v0,0    # set r21 to return value of  str_len
-          
+         li $25,2
+         div $21,$25     # find len/2
+         mflo $25
+         addiu $25,$a0,0
          addiu $8,$a0,0  # start address
          addiu $9,$21,-1  # length of strign
          addu $10,$9,$8  #end address of string
@@ -185,14 +164,18 @@ strisPalindrome:
              bne $11,$12,return_false   # return false if r11!=r12
              addiu $8,$8,1    # r8++
              addiu $10,$10,-1  #r10--
-             beq $8,$10,return_true   # return true if r8==r10, that means we have check all the pairs
+             beq $10,$25,return_true   # return true if r8==r10, that means we have check all the pairs
              j loop3      # else continue loop
          return_false:
                addiu $v0,$0,0  # return false
-               jr $20      # go back to caller
+               lw $ra,0($sp)
+               addiu $sp,$sp,4
+               jr $ra     # go back to caller
          return_true:
                addiu $v0,$0,1   # return true
-               jr $20           # go back to caller       
+               lw $ra,0($sp)    # getting caller address from stack
+               addiu $sp,$sp,4     # deallocating memory in stack
+               jr $ra     # go back to caller         # go back to caller       
 
 
 
