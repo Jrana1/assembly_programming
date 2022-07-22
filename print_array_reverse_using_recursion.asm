@@ -1,5 +1,5 @@
 		.data
-		    array: .half 8,12,3,21,92,24,9
+		    array: .half 8,12,3,21
 		    
 		.text
  main:
@@ -18,8 +18,6 @@ print_int:
          jr $ra
 
 print_reverse:
-            
-            
                  addiu $sp,$sp,-8
                  sw $ra,0($sp)
                  sw $t0,4($sp)
@@ -29,12 +27,11 @@ print_reverse:
                  addiu $a0,$a0,2
                  jal print_reverse
                  
-                 li $v0,1
-                 syscall
-                 li $a0,','
-                 li $v0,11
-                 syscall
-                 
+                 addiu $sp,$sp,-4
+                 sw $ra,0($sp)
+                 jal print_int
+                 lw $ra,0($sp)
+                 addiu $sp,$sp,4     
              return:
                    lw $ra,0($sp)
                    lw  $a0,4($sp)
